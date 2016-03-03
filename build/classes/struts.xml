@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+	<!-- 开启“开发者模式”功能：在程序抛出异常后由Struts2负责在页面上显示错误消息 -->
+	<constant name="struts.devMode" value="true" />
+
+	<constant name="struts.ui.theme" value="simple" />
+	<!-- 指定国际化资源文件的基名 -->
+	<constant name="struts.custom.i18n.resources" value="i18n" />
+
+	<package name="default" namespace="/" extends="json-default">
+
+		<interceptors>
+			<!-- 注册自己创建的用于删除临时文件的拦截器 -->
+			<interceptor name="fileCleaner"
+				class="cn.hlj.ems.interceptors.FileCleanerInterceptor" />
+
+			<!-- 注册自定义拦截器栈 -->
+			<interceptor-stack name="emsStack">
+				<interceptor-ref name="fileCleaner" />
+				<interceptor-ref name="paramsPrepareParamsStack">
+					<param name="chain.copyFieldErrors">true</param>
+					<param name="prepare.alwaysInvokePrepare">false</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+
+		<!-- 引用自定义拦截器栈 -->
+		<default-interceptor-ref name="emsStack" />
+
+		<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ EmployeeAction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<action name="emp-*" class="employeeAction" method="{1}">
+			<!-- 使用异常映射来解决Action中可能出现的异常 -->
+			<exception-mapping result="input"
+				exception="cn.hlj.ems.exceptions.LoginNameNotFoundException" />
+			<exception-mapping result="input"
+				exception="cn.hlj.ems.exceptions.EmployeeIsDeletedException" />
+			<exception-mapping result="input"
+				exception="cn.hlj.ems.exceptions.EmployeeDisabledException" />
+			<exception-mapping result="input"
+				exception="cn.hlj.ems.exceptions.PasswordNotMatchException" />
+
+			<exception-mapping result="input"
+				exception="org.springframework.security.authentication.BadCredentialsException" />
+			<exception-mapping result="input"
+				exception="org.springframework.security.authentication.DisabledException" />
+			<exception-mapping result="input"
+				exception="org.springframework.security.authentication.AccountExpiredException" />
+
+			<result name="input">/index.jsp</result>
+
+			<result name="success">/WEB-INF/pages/success.jsp</result>
+			<!-- <result name="list">/WEB-INF/pages/emps/list.jsp</result> -->
+			<result name="list">/WEB-INF/pages/emps/list2.jsp</result>
+
+			<result name="list2" type="json">
+				<param name="root">page</param>
+				<param name="excludeProperties">content.*\.department,content.*\.roles,content.*\.editor</param>
+			</result>
+
+			<result name="emp-input">/WEB-INF/pages/emps/input.jsp</result>
+
+			<!-- 文件下载 -->
+			<result type="stream" name="download-success" />
+
+			<!-- 导航菜单 -->
+			<result type="json" name="navigate-success">
+				<param name="root">navigations</param>
+			</result>
+			
+			<result name="criteriaInput">/WEB-INF/pages/emps/criteria-input.jsp</result>
+			<result name="list3">/WEB-INF/pages/emps/list3.jsp</result>
+					
+		</action>
+
+		<action name="emp-save" class="employeeAction" method="save">
+			<result name="input" type="chain">
+				<param name="actionName">emp-input</param>
+			</result>
+			<result type="redirectAction" name="success">emp-list</result>
+		</action>
+
+		<!-- 直接导航到 /WEB-INF/pages/emps/upload.jsp 页面 -->
+		<action name="emp_upload">
+			<result>/WEB-INF/pages/emps/upload.jsp</result>
+		</action>
+
+		<action name="emp-upload" class="employeeAction" method="upload">
+			<!-- 设置仅针对于当前 Action 的拦截器参数 -->
+			<interceptor-ref name="emsStack">
+				<!-- 限制上传文件的后缀名 -->
+				<param name="fileUpload.allowedExtensions">xls,xlsx</param>
+			</interceptor-ref>
+			<result name="input">/WEB-INF/pages/emps/upload.jsp</result>
+		</action>
+
+		<action name="login-success">
+			<result name="success">/WEB-INF/pages/success.jsp</result>
+		</action>
+
+		<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ EmployeeAction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+		<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RoleAction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<action name="role-*" class="roleAction" method="{1}">
+			<result name="input">/WEB-INF/pages/roles/input.jsp</result>
+			<result name="list">/WEB-INF/pages/roles/list.jsp</result>
+			<result name="details">/WEB-INF/pages/roles/details.jsp</result>
+		</action>
+		<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RoleAction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	</package>
+
+</struts>

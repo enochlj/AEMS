@@ -1,0 +1,14 @@
+<!DOCTYPE validators PUBLIC
+        "-//Apache Struts//XWork Validator 1.0.2//EN"
+        "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+	<field name="email">
+		<field-validator type="requiredstring">
+			<message key="requiredstring.email" />
+		</field-validator>
+		<field-validator type="email" short-circuit="true">
+			<message key="regex.email" />
+		</field-validator>
+	</field>
+</validators>        
+        
